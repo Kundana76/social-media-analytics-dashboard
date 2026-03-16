@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Media Engagement Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #16161f;
+  --card: #1a1a26;
+  --card2: #1f1f2e;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.1);
+  --text: #f0eeff;
+  --muted: #9090b0;
+  --dim: #5a5a7a;
+  --pink: #f054a6;
+  --purple: #8b5cf6;
+  --orange: #f97316;
+  --coral: #ff6b6b;
+  --teal: #22d3ee;
+  --gold: #fbbf24;
+  --grad1: linear-gradient(135deg, #f054a6, #8b5cf6);
+  --grad2: linear-gradient(135deg, #8b5cf6, #22d3ee);
+  --grad3: linear-gradient(135deg, #f97316, #f054a6);
+  --grad4: linear-gradient(135deg, #22d3ee, #8b5cf6);
+  --glow-pink: 0 0 20px rgba(240,84,166,0.25);
+  --glow-purple: 0 0 20px rgba(139,92,246,0.25);
+  --glow-orange: 0 0 20px rgba(249,115,22,0.2);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+ 
+/* Ambient background orbs */
+body::before {
+  content:'';
+  position:fixed; top:-200px; left:-200px;
+  width:600px; height:600px;
+  background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+  pointer-events:none; z-index:0;
+}
+body::after {
+  content:'';
+  position:fixed; bottom:-200px; right:-200px;
+  width:700px; height:700px;
+  background: radial-gradient(circle, rgba(240,84,166,0.06) 0%, transparent 70%);
+  pointer-events:none; z-index:0;
+}
+ 
+.layout { display:flex; min-height:100vh; position:relative; z-index:1; }
+ 
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky; top:0; height:100vh;
+}
+.logo {
+  padding: 0 24px 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--grad1);
+  border-radius: 10px;
+  display: flex; align-items:center; justify-content:center;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+.logo-text { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--text); letter-spacing:0.05em; text-transform:uppercase; }
+.logo-sub { font-size:11px; color:var(--muted); }
+.nav-label { font-size:10px; font-weight:600; color:var(--dim); text-transform:uppercase; letter-spacing:0.1em; padding:0 24px 8px; }
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding: 9px 24px;
+  color: var(--muted);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color:var(--text); background:rgba(255,255,255,0.03); }
+.nav-item.active {
+  color: var(--purple);
+  border-left-color: var(--purple);
+  background: rgba(139,92,246,0.08);
+}
+.nav-icon { font-size:14px; width:16px; text-align:center; }
+.sidebar-footer { margin-top:auto; padding:20px 24px 0; border-top:1px solid var(--border); }
+.profile-mini { display:flex; align-items:center; gap:10px; }
+.avatar { width:32px;height:32px; border-radius:50%; background:var(--grad1); display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700; }
+.profile-info p { font-size:12px;font-weight:600; color:var(--text); }
+.profile-info span { font-size:11px; color:var(--muted); }
+ 
+/* MAIN */
+.main { flex:1; padding:28px 32px; overflow-x:hidden; }
+ 
+/* TOPBAR */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 28px;
+}
+.page-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; }
+.page-title span { background:var(--grad1); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.page-sub { font-size:13px; color:var(--muted); margin-top:2px; }
+.topbar-actions { display:flex; align-items:center; gap:10px; }
+ 
+/* Filters */
+.filters-row {
+  display: flex; align-items:center; gap:10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.filter-label { font-size:11px; font-weight:600; color:var(--dim); text-transform:uppercase; letter-spacing:0.08em; margin-right:4px; }
+.filter-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 12px; font-weight:500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: rgba(139,92,246,0.15);
+  border-color: rgba(139,92,246,0.4);
+  color: var(--purple);
+}
+.filter-btn.active { box-shadow: 0 0 12px rgba(139,92,246,0.2); }
+select.filter-select {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+ 
+/* KPI CARDS */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+.kpi-card:hover { transform: translateY(-2px); }
+.kpi-card::before {
+  content:'';
+  position:absolute; top:-1px; left:0; right:0; height:2px;
+  border-radius:14px 14px 0 0;
+}
+.kpi-card.k1::before { background:var(--grad1); }
+.kpi-card.k2::before { background:var(--grad3); }
+.kpi-card.k3::before { background:var(--grad2); }
+.kpi-card.k4::before { background:linear-gradient(135deg,#fbbf24,#f97316); }
+.kpi-card.k5::before { background:linear-gradient(135deg,#22d3ee,#f054a6); }
+.kpi-icon {
+  width:34px; height:34px;
+  border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px;
+  margin-bottom:12px;
+}
+.kpi-card.k1 .kpi-icon { background:rgba(240,84,166,0.15); }
+.kpi-card.k2 .kpi-icon { background:rgba(249,115,22,0.15); }
+.kpi-card.k3 .kpi-icon { background:rgba(139,92,246,0.15); }
+.kpi-card.k4 .kpi-icon { background:rgba(251,191,36,0.15); }
+.kpi-card.k5 .kpi-icon { background:rgba(34,211,238,0.15); }
+.kpi-label { font-size:11px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:4px; }
+.kpi-value { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; color:var(--text); }
+.kpi-delta {
+  font-size:11px; margin-top:4px;
+  display:inline-flex; align-items:center; gap:3px;
+}
+.kpi-delta.up { color:#4ade80; }
+.kpi-delta.down { color:var(--coral); }
+ 
+/* CHARTS GRID */
+.charts-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius:16px; padding:22px;
+  position:relative;
+}
+.chart-card.wide { grid-column: 1 / -1; }
+.chart-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.chart-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; }
+.chart-subtitle { font-size:11px; color:var(--muted); margin-top:2px; }
+.badge {
+  font-size:10px; font-weight:600;
+  padding:3px 9px; border-radius:20px;
+  text-transform:uppercase; letter-spacing:0.05em;
+}
+.badge-purple { background:rgba(139,92,246,0.15); color:var(--purple); }
+.badge-pink { background:rgba(240,84,166,0.15); color:var(--pink); }
+.badge-orange { background:rgba(249,115,22,0.15); color:var(--orange); }
+.badge-teal { background:rgba(34,211,238,0.15); color:var(--teal); }
+ 
+/* BOTTOM ROW */
+.bottom-row { display:grid; grid-template-columns:1.6fr 1.4fr; gap:16px; margin-bottom:16px; }
+ 
+/* TOP POSTS TABLE */
+.table-wrap { overflow:hidden; }
+table.posts-table { width:100%; border-collapse:collapse; font-size:12px; }
+table.posts-table thead th {
+  font-size:10px; font-weight:600; color:var(--dim);
+  text-transform:uppercase; letter-spacing:0.08em;
+  padding:0 10px 10px; text-align:left; border-bottom:1px solid var(--border);
+}
+table.posts-table tbody tr {
+  border-bottom:1px solid var(--border);
+  transition:background 0.15s;
+}
+table.posts-table tbody tr:hover { background:rgba(255,255,255,0.02); }
+table.posts-table tbody tr:last-child { border-bottom:none; }
+table.posts-table tbody td { padding:10px; color:var(--muted); vertical-align:middle; }
+table.posts-table tbody td:first-child { color:var(--text); font-weight:500; }
+.type-pill {
+  font-size:10px; font-weight:600;
+  padding:2px 8px; border-radius:20px;
+  display:inline-block;
+}
+.type-reel { background:rgba(240,84,166,0.15); color:var(--pink); }
+.type-image { background:rgba(139,92,246,0.15); color:var(--purple); }
+.type-carousel { background:rgba(249,115,22,0.15); color:var(--orange); }
+.type-video { background:rgba(34,211,238,0.15); color:var(--teal); }
+.er-bar { display:flex; align-items:center; gap:6px; }
+.er-track { height:4px; background:var(--bg); border-radius:2px; flex:1; overflow:hidden; }
+.er-fill { height:100%; border-radius:2px; background:var(--grad1); }
+.er-val { font-size:11px; font-weight:600; color:var(--text); min-width:36px; }
+ 
+/* HASHTAGS */
+.hashtag-cloud { display:flex; flex-wrap:wrap; gap:8px; padding:4px 0; }
+.htag {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 12px; border-radius:20px;
+  font-size:11px; font-weight:500;
+  border:1px solid var(--border2);
+  color:var(--muted);
+  cursor:pointer; transition:all 0.2s;
+}
+.htag:hover { color:var(--text); border-color:var(--purple); background:rgba(139,92,246,0.08); }
+.htag-count {
+  font-size:10px; font-weight:700;
+  min-width:18px; height:18px;
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+}
+.htag.ht1 .htag-count { background:var(--pink); color:#fff; }
+.htag.ht2 .htag-count { background:var(--purple); color:#fff; }
+.htag.ht3 .htag-count { background:var(--orange); color:#fff; }
+.htag.ht4 .htag-count { background:var(--teal); color:#000; }
+.htag.ht5 .htag-count { background:var(--gold); color:#000; }
+ 
+/* CANVAS wrapper */
+.canvas-wrap { position:relative; width:100%; }
+ 
+/* Tooltip */
+.tooltip {
+  position:fixed;
+  background: var(--card2);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:12px; line-height:1.6;
+  pointer-events:none; z-index:1000;
+  display:none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.tooltip b { color:var(--text); }
+.tooltip span { color:var(--muted); }
+ 
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--card2); border-radius:3px; }
+ 
+/* Animations */
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+.kpi-card { animation:fadeUp 0.4s ease both; }
+.kpi-card:nth-child(1){animation-delay:0.05s}
+.kpi-card:nth-child(2){animation-delay:0.1s}
+.kpi-card:nth-child(3){animation-delay:0.15s}
+.kpi-card:nth-child(4){animation-delay:0.2s}
+.kpi-card:nth-child(5){animation-delay:0.25s}
+.chart-card { animation:fadeUp 0.5s ease both; animation-delay:0.3s; }
+ 
+/* Metric inline */
+.inline-metric { display:flex; align-items:center; gap:6px; }
+.dot { width:8px;height:8px;border-radius:50%; }
+ 
+/* Scrollable followers card */
+.follower-row { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); }
+.follower-row:last-child { border-bottom:none; }
+.follower-date { font-size:12px; color:var(--muted); }
+.follower-bar-wrap { flex:1; margin:0 12px; height:5px; background:var(--bg); border-radius:3px; overflow:hidden; }
+.follower-bar-fill { height:100%; border-radius:3px; background:var(--grad2); }
+.follower-num { font-size:12px; font-weight:600; color:var(--text); min-width:40px; text-align:right; }
+ 
+/* Accent glow cards */
+.kpi-card.k1:hover { box-shadow:var(--glow-pink); }
+.kpi-card.k3:hover { box-shadow:var(--glow-purple); }
+.kpi-card.k2:hover { box-shadow:var(--glow-orange); }
+</style>
+</head>
+<body>
+ 
+<div class="tooltip" id="tooltip"></div>
+ 
+<div class="layout">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">📊</div>
+    <div class="logo-text">Insight</div>
+    <div class="logo-sub">Analytics Studio</div>
+  </div>
+ 
+  <div class="nav-label">Overview</div>
+  <div class="nav-item active"><span class="nav-icon">⚡</span> Dashboard</div>
+  <div class="nav-item"><span class="nav-icon">📈</span> Analytics</div>
+  <div class="nav-item"><span class="nav-icon">🎞</span> Posts</div>
+  <div class="nav-item"><span class="nav-icon">#</span> Hashtags</div>
+ 
+  <div class="nav-label" style="margin-top:20px">Audience</div>
+  <div class="nav-item"><span class="nav-icon">👥</span> Followers</div>
+  <div class="nav-item"><span class="nav-icon">📍</span> Reach</div>
+  <div class="nav-item"><span class="nav-icon">💬</span> Comments</div>
+ 
+  <div class="nav-label" style="margin-top:20px">Settings</div>
+  <div class="nav-item"><span class="nav-icon">⚙</span> Preferences</div>
+  <div class="nav-item"><span class="nav-icon">📤</span> Export</div>
+ 
+  <div class="sidebar-footer">
+    <div class="profile-mini">
+      <div class="avatar">CJ</div>
+      <div class="profile-info">
+        <p>Content Creator</p>
+        <span>@cj.creates</span>
+      </div>
+    </div>
+  </div>
+</aside>
+ 
+<!-- MAIN CONTENT -->
+<main class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="page-title">Engagement <span>Analytics</span></div>
+      <div class="page-sub">Social Media Performance Dashboard · Last 90 Days</div>
+    </div>
+    <div class="topbar-actions">
+      <select class="filter-select" id="dateRange" onchange="applyFilters()">
+        <option value="90">Last 90 Days</option>
+        <option value="60">Last 60 Days</option>
+        <option value="30">Last 30 Days</option>
+        <option value="7">Last 7 Days</option>
+      </select>
+    </div>
+  </div>
+ 
+  <!-- FILTERS -->
+  <div class="filters-row">
+    <span class="filter-label">Post Type</span>
+    <button class="filter-btn active" onclick="filterType('all',this)">All</button>
+    <button class="filter-btn" onclick="filterType('reel',this)">🎬 Reels</button>
+    <button class="filter-btn" onclick="filterType('image',this)">🖼 Images</button>
+    <button class="filter-btn" onclick="filterType('carousel',this)">🎠 Carousels</button>
+    <button class="filter-btn" onclick="filterType('video',this)">📹 Videos</button>
+  </div>
+ 
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card k1">
+      <div class="kpi-icon">📝</div>
+      <div class="kpi-label">Total Posts</div>
+      <div class="kpi-value" id="kpi-posts">—</div>
+      <div class="kpi-delta up" id="kpi-posts-d">↑ +12 this month</div>
+    </div>
+    <div class="kpi-card k2">
+      <div class="kpi-icon">❤️</div>
+      <div class="kpi-label">Total Likes</div>
+      <div class="kpi-value" id="kpi-likes">—</div>
+      <div class="kpi-delta up" id="kpi-likes-d">↑ +8.4%</div>
+    </div>
+    <div class="kpi-card k3">
+      <div class="kpi-icon">💬</div>
+      <div class="kpi-label">Total Comments</div>
+      <div class="kpi-value" id="kpi-comments">—</div>
+      <div class="kpi-delta up" id="kpi-comments-d">↑ +5.2%</div>
+    </div>
+    <div class="kpi-card k4">
+      <div class="kpi-icon">🔁</div>
+      <div class="kpi-label">Total Shares</div>
+      <div class="kpi-value" id="kpi-shares">—</div>
+      <div class="kpi-delta down" id="kpi-shares-d">↓ -1.1%</div>
+    </div>
+    <div class="kpi-card k5">
+      <div class="kpi-icon">🔥</div>
+      <div class="kpi-label">Avg Engagement</div>
+      <div class="kpi-value" id="kpi-er">—</div>
+      <div class="kpi-delta up" id="kpi-er-d">↑ +0.7pp</div>
+    </div>
+  </div>
+ 
+  <!-- CHARTS ROW 1 -->
+  <div class="charts-row">
+    <!-- Engagement Trend -->
+    <div class="chart-card wide">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Engagement Rate Over Time</div>
+          <div class="chart-subtitle">Daily engagement % across all post types</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="inline-metric"><div class="dot" style="background:var(--purple)"></div><span style="font-size:11px;color:var(--muted)">Engagement %</span></div>
+          <div class="inline-metric"><div class="dot" style="background:var(--pink)"></div><span style="font-size:11px;color:var(--muted)">Virality Score</span></div>
+          <span class="badge badge-purple">LIVE</span>
+        </div>
+      </div>
+      <div class="canvas-wrap" style="height:200px">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- CHARTS ROW 2 -->
+  <div class="charts-row">
+    <!-- Post Type Performance -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Post Type Performance</div>
+          <div class="chart-subtitle">Avg engagement rate by format</div>
+        </div>
+        <span class="badge badge-pink">COMPARE</span>
+      </div>
+      <div class="canvas-wrap" style="height:220px">
+        <canvas id="typeChart"></canvas>
+      </div>
+    </div>
+ 
+    <!-- Follower Growth Trend -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Follower Growth Trend</div>
+          <div class="chart-subtitle">New followers gained per week</div>
+        </div>
+        <span class="badge badge-teal">GROWTH</span>
+      </div>
+      <div class="canvas-wrap" style="height:220px">
+        <canvas id="followerChart"></canvas>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+    <!-- Top Performing Posts -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Top Performing Posts</div>
+          <div class="chart-subtitle">Ranked by engagement rate</div>
+        </div>
+        <span class="badge badge-orange">TOP 8</span>
+      </div>
+      <div class="table-wrap">
+        <table class="posts-table">
+          <thead>
+            <tr>
+              <th>Post ID</th>
+              <th>Type</th>
+              <th>Likes</th>
+              <th>Comments</th>
+              <th>Eng. Rate</th>
+            </tr>
+          </thead>
+          <tbody id="postsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- Hashtag Analysis + Follower Stats -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="chart-card" style="flex:1">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Hashtag Analysis</div>
+            <div class="chart-subtitle">Most used tags by post count</div>
+          </div>
+          <span class="badge badge-purple">#TAGS</span>
+        </div>
+        <div class="hashtag-cloud" id="hashtagCloud"></div>
+        <div class="canvas-wrap" style="height:130px;margin-top:12px;">
+          <canvas id="hashtagChart"></canvas>
+        </div>
+      </div>
+ 
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Daily Follower Gains</div>
+            <div class="chart-subtitle">Follower growth rate per day</div>
+          </div>
+          <span class="badge badge-teal">DAILY</span>
+        </div>
+        <div id="followerList"></div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Metrics summary row -->
+  <div class="charts-row" style="margin-bottom:0">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Reach vs Impressions</div>
+          <div class="chart-subtitle">Content spread over time</div>
+        </div>
+        <span class="badge badge-purple">SPREAD</span>
+      </div>
+      <div class="canvas-wrap" style="height:170px">
+        <canvas id="reachChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Virality & Follower Conversion</div>
+          <div class="chart-subtitle">Virality score + follower growth rate %</div>
+        </div>
+        <span class="badge badge-pink">VIRAL</span>
+      </div>
+      <div class="canvas-wrap" style="height:170px">
+        <canvas id="viralityChart"></canvas>
+      </div>
+    </div>
+  </div>
+ 
+</main>
+</div>
+ 
+<script>
+/* ===== DATASET GENERATION ===== */
+const postTypes = ['Reel','Image','Carousel','Video'];
+const hashtags = ['#trending','#reels','#viral','#contentcreator','#instadaily','#photography','#explore','#fashion','#motivational','#lifestyle','#aesthetic','#creator'];
+ 
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function randF(min,max,dec=2){ return parseFloat((Math.random()*(max-min)+min).toFixed(dec)); }
+ 
+let allPosts = [];
+let seed = 0;
+function seededRand(min,max){
+  seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+  return min + (seed % (max - min + 1));
+}
+ 
+function generateDataset(days=90){
+  seed = 42;
+  allPosts = [];
+  const now = new Date('2024-12-31');
+  for(let i=0;i<days;i++){
+    const numPosts = seededRand(1,4);
+    for(let j=0;j<numPosts;j++){
+      const date = new Date(now);
+      date.setDate(date.getDate() - (days-1-i));
+      const type = postTypes[seededRand(0,3)];
+      const reach = seededRand(4000,45000);
+      const impressions = Math.floor(reach * randF(1.2,2.2));
+      const likes = Math.floor(reach * randF(0.04,0.18));
+      const comments = Math.floor(likes * randF(0.05,0.2));
+      const shares = Math.floor(likes * randF(0.03,0.12));
+      const saves = Math.floor(likes * randF(0.06,0.2));
+      const followersGained = Math.floor(reach * randF(0.001,0.006));
+      const captionLen = seededRand(30,300);
+      const numTags = seededRand(3,8);
+      const postHashtags = [];
+      for(let k=0;k<numTags;k++) postHashtags.push(hashtags[seededRand(0,hashtags.length-1)]);
+ 
+      const engRate = ((likes+comments+shares+saves)/reach*100);
+      const viralScore = ((shares+saves)/impressions*100);
+      const followerGrowthRate = (followersGained/reach*100);
+ 
+      allPosts.push({
+        id: 'P' + String(i*10+j+1001).slice(-4),
+        date, type, likes, comments, shares, saves,
+        reach, impressions, followersGained, captionLen,
+        hashtags: postHashtags,
+        engRate: parseFloat(engRate.toFixed(2)),
+        viralScore: parseFloat(viralScore.toFixed(2)),
+        followerGrowthRate: parseFloat(followerGrowthRate.toFixed(2))
+      });
+    }
+  }
+}
+ 
+generateDataset(90);
+ 
+/* ===== STATE ===== */
+let currentType = 'all';
+let currentDays = 90;
+ 
+function getFiltered(){
+  const cutoff = new Date('2024-12-31');
+  cutoff.setDate(cutoff.getDate() - currentDays + 1);
+  return allPosts.filter(p => {
+    const typeOk = currentType === 'all' || p.type.toLowerCase() === currentType;
+    const dateOk = p.date >= cutoff;
+    return typeOk && dateOk;
+  });
+}
+ 
+/* ===== KPI UPDATE ===== */
+function updateKPIs(posts){
+  const total = posts.length;
+  const totalLikes = posts.reduce((s,p)=>s+p.likes,0);
+  const totalComments = posts.reduce((s,p)=>s+p.comments,0);
+  const totalShares = posts.reduce((s,p)=>s+p.shares,0);
+  const avgER = posts.length ? (posts.reduce((s,p)=>s+p.engRate,0)/posts.length) : 0;
+ 
+  document.getElementById('kpi-posts').textContent = total;
+  document.getElementById('kpi-likes').textContent = totalLikes >= 1000 ? (totalLikes/1000).toFixed(1)+'K' : totalLikes;
+  document.getElementById('kpi-comments').textContent = totalComments >= 1000 ? (totalComments/1000).toFixed(1)+'K' : totalComments;
+  document.getElementById('kpi-shares').textContent = totalShares >= 1000 ? (totalShares/1000).toFixed(1)+'K' : totalShares;
+  document.getElementById('kpi-er').textContent = avgER.toFixed(1)+'%';
+}
+ 
+/* ===== CHARTS ===== */
+let charts = {};
+ 
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+ 
+const chartDefaults = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { enabled: true } },
+  animation: { duration: 600, easing:'easeInOutQuart' }
+};
+ 
+/* TREND CHART */
+function buildTrendChart(posts){
+  destroyChart('trend');
+  const byDate = {};
+  posts.forEach(p=>{
+    const dk = p.date.toISOString().slice(0,10);
+    if(!byDate[dk]) byDate[dk]={er:[],vs:[]};
+    byDate[dk].er.push(p.engRate);
+    byDate[dk].vs.push(p.viralScore);
+  });
+  const labels = Object.keys(byDate).sort();
+  const erData = labels.map(d=>parseFloat((byDate[d].er.reduce((a,b)=>a+b,0)/byDate[d].er.length).toFixed(2)));
+  const vsData = labels.map(d=>parseFloat((byDate[d].vs.reduce((a,b)=>a+b,0)/byDate[d].vs.length).toFixed(2)));
+  const displayLabels = labels.map(d=>{ const dt=new Date(d); return (dt.getMonth()+1)+'/'+ dt.getDate(); });
+ 
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  const gradER = ctx.createLinearGradient(0,0,0,200);
+  gradER.addColorStop(0,'rgba(139,92,246,0.3)');
+  gradER.addColorStop(1,'rgba(139,92,246,0)');
+  const gradVS = ctx.createLinearGradient(0,0,0,200);
+  gradVS.addColorStop(0,'rgba(240,84,166,0.25)');
+  gradVS.addColorStop(1,'rgba(240,84,166,0)');
+ 
+  charts['trend'] = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: displayLabels,
+      datasets:[
+        { label:'Engagement Rate %', data:erData, borderColor:'#8b5cf6', backgroundColor:gradER, borderWidth:2, pointRadius:0, tension:0.4, fill:true },
+        { label:'Virality Score', data:vsData, borderColor:'#f054a6', backgroundColor:gradVS, borderWidth:1.5, pointRadius:0, tension:0.4, fill:true, borderDash:[4,3] }
+      ]
+    },
+    options:{
+      ...chartDefaults,
+      scales:{
+        x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#5a5a7a',font:{size:10},maxRotation:0,maxTicksLimit:12} },
+        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#5a5a7a',font:{size:10},callback:v=>v.toFixed(1)+'%'} }
+      }
+    }
+  });
+}
+ 
+/* POST TYPE CHART */
+function buildTypeChart(posts){
+  destroyChart('type');
+  const typeStats = {};
+  postTypes.forEach(t=>{ typeStats[t]={er:[],likes:[],saves:[]}; });
+  posts.forEach(p=>{ typeStats[p.type].er.push(p.engRate); });
+  const labels = postTypes;
+  const data = labels.map(t=>typeStats[t].er.length ? parseFloat((typeStats[t].er.reduce((a,b)=>a+b,0)/typeStats[t].er.length).toFixed(2)) : 0);
+ 
+  const colors = ['#f054a6','#8b5cf6','#f97316','#22d3ee'];
+  const bgColors = colors.map(c=>c+'33');
+ 
+  const ctx = document.getElementById('typeChart').getContext('2d');
+  charts['type'] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:bgColors, borderColor:colors, borderWidth:1.5, borderRadius:8, borderSkipped:false }] },
+    options:{
+      ...chartDefaults,
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:'#9090b0',font:{size:11}} },
+        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#5a5a7a',font:{size:10},callback:v=>v+'%'} }
+      }
+    }
+  });
+}
+ 
+/* FOLLOWER CHART */
+function buildFollowerChart(posts){
+  destroyChart('follower');
+  const byWeek = {};
+  posts.forEach(p=>{
+    const wk = Math.floor((new Date('2024-12-31')-p.date)/(7*86400000));
+    if(!byWeek[wk]) byWeek[wk]={fg:0,label:''};
+    byWeek[wk].fg += p.followersGained;
+    byWeek[wk].label = 'W-'+wk;
+  });
+  const weeks = Object.keys(byWeek).sort((a,b)=>b-a).slice(0,12).reverse();
+  const labels = weeks.map(w=>'Wk '+(12-parseInt(w)));
+  const data = weeks.map(w=>byWeek[w].fg);
+ 
+  const ctx = document.getElementById('followerChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,0,220);
+  grad.addColorStop(0,'rgba(34,211,238,0.4)');
+  grad.addColorStop(1,'rgba(34,211,238,0)');
+ 
+  charts['follower'] = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{ data, borderColor:'#22d3ee', backgroundColor:grad, borderWidth:2, pointRadius:3, pointBackgroundColor:'#22d3ee', tension:0.4, fill:true }] },
+    options:{
+      ...chartDefaults,
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:'#9090b0',font:{size:10}} },
+        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#5a5a7a',font:{size:10}} }
+      }
+    }
+  });
+}
+ 
+/* TOP POSTS TABLE */
+function buildPostsTable(posts){
+  const top = [...posts].sort((a,b)=>b.engRate-a.engRate).slice(0,8);
+  const maxER = top[0]?.engRate || 1;
+  const tbody = document.getElementById('postsTableBody');
+  const typeClass = {Reel:'type-reel',Image:'type-image',Carousel:'type-carousel',Video:'type-video'};
+  tbody.innerHTML = top.map(p=>`
+    <tr>
+      <td>${p.id}</td>
+      <td><span class="type-pill ${typeClass[p.type]}">${p.type}</span></td>
+      <td>${p.likes >= 1000 ? (p.likes/1000).toFixed(1)+'K' : p.likes}</td>
+      <td>${p.comments}</td>
+      <td>
+        <div class="er-bar">
+          <div class="er-track"><div class="er-fill" style="width:${(p.engRate/maxER*100).toFixed(1)}%"></div></div>
+          <span class="er-val">${p.engRate.toFixed(1)}%</span>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+ 
+/* HASHTAG CLOUD + CHART */
+function buildHashtags(posts){
+  const tagCount = {};
+  posts.forEach(p=>p.hashtags.forEach(h=>{ tagCount[h]=(tagCount[h]||0)+1; }));
+  const sorted = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const cloud = document.getElementById('hashtagCloud');
+  const clsMap = ['ht1','ht2','ht3','ht4','ht5'];
+  cloud.innerHTML = sorted.slice(0,6).map((([tag,cnt],i)=>
+    `<div class="htag ${clsMap[i%5]}"><span>${tag}</span><span class="htag-count">${cnt}</span></div>`
+  )).join('');
+ 
+  destroyChart('hashtag');
+  const top6 = sorted.slice(0,6);
+  const colors = ['#f054a6','#8b5cf6','#f97316','#22d3ee','#fbbf24','#ff6b6b'];
+  const ctx = document.getElementById('hashtagChart').getContext('2d');
+  charts['hashtag'] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:top6.map(([t])=>t), datasets:[{ data:top6.map(([,c])=>c), backgroundColor:colors.map(c=>c+'44'), borderColor:colors, borderWidth:1.5, borderRadius:6, borderSkipped:false }] },
+    options:{
+      ...chartDefaults,
+      indexAxis:'y',
+      scales:{
+        x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#5a5a7a',font:{size:9}} },
+        y:{ grid:{display:false}, ticks:{color:'#9090b0',font:{size:10}} }
+      }
+    }
+  });
+}
+ 
+/* FOLLOWER LIST */
+function buildFollowerList(posts){
+  const byDay = {};
+  posts.forEach(p=>{
+    const dk = p.date.toISOString().slice(0,10);
+    byDay[dk] = (byDay[dk]||0)+p.followersGained;
+  });
+  const days = Object.keys(byDay).sort().slice(-8);
+  const max = Math.max(...days.map(d=>byDay[d]));
+  const list = document.getElementById('followerList');
+  list.innerHTML = days.reverse().map(d=>`
+    <div class="follower-row">
+      <span class="follower-date">${new Date(d).toLocaleDateString('en',{month:'short',day:'numeric'})}</span>
+      <div class="follower-bar-wrap"><div class="follower-bar-fill" style="width:${(byDay[d]/max*100).toFixed(0)}%"></div></div>
+      <span class="follower-num">+${byDay[d]}</span>
+    </div>`).join('');
+}
+ 
+/* REACH CHART */
+function buildReachChart(posts){
+  destroyChart('reach');
+  const byDate = {};
+  posts.forEach(p=>{
+    const dk = p.date.toISOString().slice(0,10);
+    if(!byDate[dk]) byDate[dk]={reach:0,imp:0};
+    byDate[dk].reach+=p.reach; byDate[dk].imp+=p.impressions;
+  });
+  const labels = Object.keys(byDate).sort();
+  const displayLabels = labels.map(d=>{ const dt=new Date(d); return (dt.getMonth()+1)+'/'+dt.getDate(); });
+  const reachData = labels.map(d=>byDate[d].reach);
+  const impData = labels.map(d=>byDate[d].imp);
+ 
+  const ctx = document.getElementById('reachChart').getContext('2d');
+  const gR = ctx.createLinearGradient(0,0,0,170);
+  gR.addColorStop(0,'rgba(139,92,246,0.3)'); gR.addColorStop(1,'rgba(139,92,246,0)');
+  const gI = ctx.createLinearGradient(0,0,0,170);
+  gI.addColorStop(0,'rgba(240,84,166,0.2)'); gI.addColorStop(1,'rgba(240,84,166,0)');
+  charts['reach'] = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:displayLabels,
+      datasets:[
+        {label:'Reach',data:reachData,borderColor:'#8b5cf6',backgroundColor:gR,borderWidth:1.5,pointRadius:0,tension:0.4,fill:true},
+        {label:'Impressions',data:impData,borderColor:'#f054a6',backgroundColor:gI,borderWidth:1.5,pointRadius:0,tension:0.4,fill:true,borderDash:[4,3]}
+      ]
+    },
+    options:{
+      ...chartDefaults,
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a7a',font:{size:9},maxTicksLimit:10}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a7a',font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}
+      }
+    }
+  });
+}
+ 
+/* VIRALITY CHART */
+function buildViralityChart(posts){
+  destroyChart('virality');
+  const byDate = {};
+  posts.forEach(p=>{
+    const dk = p.date.toISOString().slice(0,10);
+    if(!byDate[dk]) byDate[dk]={vs:[],fgr:[]};
+    byDate[dk].vs.push(p.viralScore); byDate[dk].fgr.push(p.followerGrowthRate);
+  });
+  const labels = Object.keys(byDate).sort();
+  const displayLabels = labels.map(d=>{ const dt=new Date(d); return (dt.getMonth()+1)+'/'+dt.getDate(); });
+  const vsData = labels.map(d=>parseFloat((byDate[d].vs.reduce((a,b)=>a+b,0)/byDate[d].vs.length).toFixed(3)));
+  const fgrData = labels.map(d=>parseFloat((byDate[d].fgr.reduce((a,b)=>a+b,0)/byDate[d].fgr.length).toFixed(3)));
+ 
+  const ctx = document.getElementById('viralityChart').getContext('2d');
+  charts['virality'] = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:displayLabels,
+      datasets:[
+        {label:'Virality Score',data:vsData,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.1)',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true},
+        {label:'Follower Growth Rate',data:fgrData,borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,0.08)',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true,borderDash:[4,3]}
+      ]
+    },
+    options:{
+      ...chartDefaults,
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a7a',font:{size:9},maxTicksLimit:10}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a7a',font:{size:9},callback:v=>v.toFixed(2)+'%'}}
+      }
+    }
+  });
+}
+ 
+/* ===== RENDER ALL ===== */
+function renderAll(){
+  const posts = getFiltered();
+  updateKPIs(posts);
+  buildTrendChart(posts);
+  buildTypeChart(posts);
+  buildFollowerChart(posts);
+  buildPostsTable(posts);
+  buildHashtags(posts);
+  buildFollowerList(posts);
+  buildReachChart(posts);
+  buildViralityChart(posts);
+}
+ 
+/* ===== FILTER HANDLERS ===== */
+function filterType(type, btn){
+  currentType = type;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+function applyFilters(){
+  currentDays = parseInt(document.getElementById('dateRange').value);
+  renderAll();
+}
+ 
+/* ===== INIT ===== */
+renderAll();
+</script>
+</body>
+</html>

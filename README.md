@@ -8,7 +8,7 @@ An interactive **Social Media Analytics Dashboard** built using **HTML, CSS, Jav
 
 After deploying with GitHub Pages, your dashboard will be available at:
 
-https://yourusername.github.io/social-media-analytics-dashboard
+https://kundana76.github.io/social-media-analytics-dashboard/
 
 ---
 
